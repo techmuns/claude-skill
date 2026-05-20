@@ -31,6 +31,23 @@ git -C ~/claude-skill pull
 
 Re-running `install-local.sh` is safe and also pulls.
 
+## Adding the hook to another repo (one file)
+
+Run this inside any target repo you want to wire up:
+
+```sh
+mkdir -p .claude
+curl -fsSL https://raw.githubusercontent.com/techmuns/claude-skill/HEAD/.claude/settings.json \
+  -o .claude/settings.json
+git add .claude/settings.json
+git commit -m "chore: enable skills sync"
+git push
+```
+
+That single `.claude/settings.json` is enough — the SessionStart hook it contains fetches `scripts/setup-agent-base.sh` from this repo at every session start, so target repos never need to ship the script themselves.
+
+Trade-off: every session start does a `curl` to GitHub raw. If GitHub is down or the cloud network policy blocks raw.githubusercontent.com, the hook fails silently and skills won't load.
+
 ## Adding a new skill
 
 ```sh
