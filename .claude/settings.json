@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash $CLAUDE_PROJECT_DIR/scripts/setup-agent-base.sh",
+            "timeout": 60
+          }
+        ]
+      }
+    ]
+  }
+}
