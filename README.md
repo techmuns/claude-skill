@@ -20,7 +20,7 @@ The hook is gated on `$CLAUDE_CODE_REMOTE == "true"`, so it no-ops in local sess
 One-time per machine — clones the repo into `~/claude-skill` and symlinks skills into `~/.claude/skills`:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/techmuns/claude-skill/main/scripts/install-local.sh | bash
+curl -fsSL https://raw.githubusercontent.com/techmuns/claude-skill/HEAD/scripts/install-local.sh | bash
 ```
 
 No auto-pull daemon yet (cloud-first phase). To refresh:
@@ -70,7 +70,7 @@ The `public/` directory is a static index of your skills. Connect this repo in t
 - **Build command:** `node scripts/build-index.js`
 - **Output directory:** `public`
 - **Root directory:** `/`
-- **Production branch:** `main`
+- **Production branch:** whatever your default branch is (this repo has no `main` — Cloudflare auto-detects on connect)
 
 No Node dependencies required — the build script uses only stdlib.
 
