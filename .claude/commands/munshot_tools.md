@@ -1,8 +1,8 @@
 ---
-description: Wire a MUNS data tool (get_financials, ticker_search, ...) into the dashboard via a six-phase playbook — token-as-secret, GitHub Actions bootstrap, Cloudflare Worker proxy, JSON parser, 1:1 dashboard mapping, teardown.
+description: Wire a MUNS data tool (get_financials, ticker_search, ...) into the dashboard via a five-phase playbook — token-as-secret, GitHub Actions bootstrap, JSON parser + 1:1 dashboard mapping, Cloudflare Worker proxy, UI.
 ---
 
-You are an AI coding agent with full access to the working tree, a shell, and git. Your job is to wire a MUNS **data tool** into the dashboard repo I'm currently in. Tools are JSON REST endpoints; one slash command, many tools, same playbook. Follow the six-phase flow below.
+You are an AI coding agent with full access to the working tree, a shell, and git. Your job is to wire a MUNS **data tool** into the dashboard repo I'm currently in. Tools are JSON REST endpoints; one slash command, many tools, same playbook. Follow the five-phase flow below. The bootstrap workflow + sample output stay committed — no teardown phase.
 
 **Key principle:** the MUNS bearer token is NEVER hardcoded and NEVER shipped in the client bundle. It lives only as a secret:
 
@@ -13,7 +13,7 @@ You are an AI coding agent with full access to the working tree, a shell, and gi
 
 Do not run any commands or read files until I've told you which tool I want.
 
-- If I ask what this prompt does, summarise the six phases in 4–6 bullets, list the available tools (below), and ask "Which tool? (`get_financials` / `ticker_search`)". No tool calls.
+- If I ask what this prompt does, summarise the five phases in 4–6 bullets, list the available tools (below), and ask "Which tool? (`get_financials` / `ticker_search`)". No tool calls.
 - If my first message already names a tool + the required params, go straight to Phase 1.
 - If I just say "start", ask which tool.
 
@@ -119,19 +119,11 @@ The browser must NOT hold the token. Route MUNS tool calls through the dashboard
    - Which dashboard surface it populates.
    - Which response fields are now visible, which are dropped, and why.
 
-## Phase 6 — Tear down the bootstrap
-
-Once a 2xx JSON sample is captured and the UI is wired:
-- Delete **only** `.github/workflows/munshot-tool-fetch.yml` and **only** the `munshot-outputs/tool-*.json` files this run created.
-- **Do NOT touch** `.github/workflows/munshot-fetch.yml` or any `munshot-outputs/agent-*.txt` / `munshot-outputs/chat-*.txt` files — those belong to `/munshot_agent` and may still be needed there.
-- Only `rmdir munshot-outputs/` if it is empty after this cleanup.
-- The shared `MUNS_ACCESS_TOKEN` secrets (GitHub + Cloudflare) **must remain** — runtime and any future `/munshot_*` runs depend on them. Do not advise removing them.
-- Do not tear down if any run failed.
-
 ## Hard rules
 
 - Token only ever exists as the two secrets. Never in source, `.env`, `.env.example`, or the client bundle.
 - These endpoints return **JSON**, not the `<ans>...</ans>` markdown shape from `/munshot_agent`. Do not reuse `munsParse.ts`.
+- The bootstrap workflow (`.github/workflows/munshot-tool-fetch.yml`) and `munshot-outputs/tool-*.json` stay committed — they are useful for re-capturing samples on demand. No teardown.
 - Browser → same-origin `/api/muns/tools/<toolname>` only. The MUNS hostname appears only in the Worker.
 - One tool wired per invocation. Do not bulk-wire multiple tools in one run unless explicitly told.
 - Match the dashboard's existing visual style; read its components before writing new ones.

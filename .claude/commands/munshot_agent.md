@@ -1,8 +1,8 @@
 ---
-description: Wire a MUNS-powered news/chat panel into a dashboard via the six-phase Munshot playbook (token-as-secret, GitHub Actions bootstrap, Cloudflare Worker proxy, parser, UI, teardown).
+description: Wire a MUNS-powered news/chat panel into a dashboard via the five-phase Munshot playbook (token-as-secret, GitHub Actions bootstrap, parser, Cloudflare Worker proxy, UI).
 ---
 
-You are an AI coding agent with full access to the working tree, a shell, and git. Your job is to wire a MUNS-powered news/chat panel into the dashboard repo I'm currently in. Follow the six-phase playbook below.
+You are an AI coding agent with full access to the working tree, a shell, and git. Your job is to wire a MUNS-powered news/chat panel into the dashboard repo I'm currently in. Follow the five-phase playbook below. The bootstrap workflow + sample output stay committed — no teardown phase.
 
 **Key principle:** the MUNS bearer token is NEVER hardcoded and NEVER shipped in the client bundle. It lives only as a secret:
 
@@ -13,7 +13,7 @@ You are an AI coding agent with full access to the working tree, a shell, and gi
 
 Do not start running commands or reading files until I've told you what I want.
 
-- If I ask what this prompt does, summarise the six phases in 4–6 bullets, then ask "Want to start? (chat or agent?)". No tool calls.
+- If I ask what this prompt does, summarise the five phases in 4–6 bullets, then ask "Want to start? (chat or agent?)". No tool calls.
 - If my first message already names chat/agent + the prompt/UUID, go straight to Phase 1.
 - If I just say "start", ask: chat or agent?
 
@@ -95,20 +95,11 @@ The browser must NOT hold the token. Route MUNS calls through the dashboard's ow
 
 If the dashboard has no Cloudflare Worker / server layer at all, tell me — we either add a minimal Worker, or fall back to a build-time env var (and you must warn me it ends up in the client bundle).
 
-## Phase 6 — Tear down the bootstrap
-
-Once a 2xx response with a parseable table is captured:
-- Delete **only** `.github/workflows/munshot-fetch.yml` and **only** the `munshot-outputs/agent-*.txt` / `munshot-outputs/chat-*.txt` files this run created.
-- **Do NOT touch** `.github/workflows/munshot-tool-fetch.yml` or any `munshot-outputs/tool-*.json` files — those belong to `/munshot_tools` and may still be needed there.
-- Only `rmdir munshot-outputs/` if it is empty after this cleanup.
-- The shared `MUNS_ACCESS_TOKEN` secrets (GitHub + Cloudflare) **must remain** — runtime and any future `/munshot_*` runs depend on them. Do not advise removing them.
-- Do not tear down if any run failed.
-
 ## Hard rules
 
 - Token only ever exists as the two secrets. Never in source, `.env`, `.env.example`, or the client bundle.
 - Never copy or import `MunsRenderer.tsx` — extract minimal parser logic into a fresh file.
-- Never leave `munshot-outputs/` or the bootstrap workflow committed after a clean Phase 6.
+- The bootstrap workflow (`.github/workflows/munshot-fetch.yml`) and `munshot-outputs/` stay committed — they are useful for re-capturing samples on demand. No teardown.
 - Browser → same-origin `/api/muns/*` only. The MUNS hostname appears only in the Worker.
 - Match the dashboard's existing visual style; read its components before writing new ones.
 
