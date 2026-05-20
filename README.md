@@ -4,18 +4,14 @@ Personal Claude skills, synced. One git repo is the source of truth; every Claud
 
 ## Cloud Claude Code setup (primary)
 
-1. In [Claude Code on the web](https://claude.ai/code), create a Cloud environment pointing at `github.com/techmuns/claude-skill`.
-2. In that environment's `.env`, set:
+This repo is **public**, so no token is needed.
 
-   ```
-   GH_TOKEN=<fine-grained PAT with `contents: read` on this repo>
-   ```
-
-3. Start any session. The `SessionStart` hook runs `scripts/setup-agent-base.sh`, which:
+1. In [Claude Code on the web](https://claude.ai/code), create a Cloud environment pointing at `github.com/techmuns/claude-skill` (or attach this scaffold to any other project — the hook will fire there too).
+2. Start any session. The `SessionStart` hook runs `scripts/setup-agent-base.sh`, which:
    - Clones the repo to `~/agent-base` (or pulls if already cloned).
    - Symlinks `~/agent-base/.claude/{skills,commands,agents,hooks}` into `~/.claude/`.
    - Symlinks `~/agent-base/CLAUDE.md` to `~/.claude/CLAUDE.md` if present.
-4. Confirm it worked: look for `[skills-sync]` lines in the session log, or ask Claude to run `ls -la ~/.claude/skills/`.
+3. Confirm it worked: look for `[skills-sync]` lines in the session log, or ask Claude to run `ls -la ~/.claude/skills/`.
 
 The hook is gated on `$CLAUDE_CODE_REMOTE == "true"`, so it no-ops in local sessions and won't double-clone.
 
@@ -80,8 +76,8 @@ No Node dependencies required — the build script uses only stdlib.
 
 ## Security notes
 
-- `GH_TOKEN` is passed to git via `-c http.extraHeader=...` (process-scoped). It never lands in `~/agent-base/.git/config` and never appears in the clone URL.
-- Use a fine-grained PAT scoped to this repo only.
+- Repo is public, so no token ever touches the cloud sandbox.
+- Skills should not contain secrets — anything committed here is world-readable.
 - `.gitignore` excludes `.env`, `.env.local`, `*.bak.*`, and `node_modules/`.
 
 ## Repo layout

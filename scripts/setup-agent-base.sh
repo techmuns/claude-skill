@@ -1,7 +1,8 @@
 #!/bin/bash
 # Runs as a Claude Code SessionStart hook in remote/cloud sessions only.
-# Clones (or pulls) the skills repo and symlinks .claude/{skills,commands,agents,hooks}
-# from the cloned tree into $HOME/.claude/ so every cloud session inherits them.
+# Clones (or pulls) the public skills repo and symlinks
+# .claude/{skills,commands,agents,hooks} from the cloned tree into $HOME/.claude/
+# so every cloud session inherits them.
 set -euo pipefail
 
 REPO_URL="https://github.com/techmuns/claude-skill.git"
@@ -12,20 +13,12 @@ if [ "${CLAUDE_CODE_REMOTE:-}" != "true" ]; then
   exit 0
 fi
 
-if [ -z "${GH_TOKEN:-}" ]; then
-  echo "[skills-sync] ERROR: GH_TOKEN is not set. Add it to the cloud environment's .env" >&2
-  exit 1
-fi
-
-# Token is passed via -c (process-scoped); it never persists into .git/config.
-AUTH_HEADER="Authorization: Bearer ${GH_TOKEN}"
-
 if [ -d "$BASE/.git" ]; then
   echo "[skills-sync] updating $BASE"
-  git -c "http.extraHeader=${AUTH_HEADER}" -C "$BASE" pull --quiet --ff-only
+  git -C "$BASE" pull --quiet --ff-only
 else
   echo "[skills-sync] cloning $REPO_URL into $BASE"
-  git -c "http.extraHeader=${AUTH_HEADER}" clone --quiet "$REPO_URL" "$BASE"
+  git clone --quiet "$REPO_URL" "$BASE"
 fi
 
 mkdir -p "$HOME/.claude"
