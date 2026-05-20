@@ -1,9 +1,6 @@
 ---
-name: munshot_agent
-description: Wire a MUNS-powered news/chat panel into a dashboard repo via a six-phase playbook (token-as-secret, GitHub Actions bootstrap, Cloudflare Worker proxy, parser, UI, teardown). Use when the user mentions MUNS, Munshot, /munshot_agent, wiring devde.muns.io endpoints, or asks to integrate a MUNS chat/agent panel.
+description: Wire a MUNS-powered news/chat panel into a dashboard via the six-phase Munshot playbook (token-as-secret, GitHub Actions bootstrap, Cloudflare Worker proxy, parser, UI, teardown).
 ---
-
-# munshot_agent
 
 You are an AI coding agent with full access to the working tree, a shell, and git. Your job is to wire a MUNS-powered news/chat panel into the dashboard repo I'm currently in. Follow the six-phase playbook below.
 
