@@ -56,7 +56,12 @@ Required from user: `query` (free-text company/ticker name).
 
 ## Phase 2 — Token (secret, never hardcoded)
 
-Do not ask for the token to put in source. Instead confirm two secrets exist; if not, instruct me to create them:
+**Shared with `/munshot_agent`** — both commands use the same `MUNS_ACCESS_TOKEN` in the same two places. Before asking me to set up anything, sniff the repo for signs it's already wired from a prior `/munshot_agent` (or earlier `/munshot_tools`) run:
+
+- `git grep -l 'secrets.MUNS_ACCESS_TOKEN' .github/workflows/` — any hit means the GitHub Actions secret was already used; it almost certainly still exists. Confirm with me, don't re-instruct.
+- `git grep -l 'MUNS_ACCESS_TOKEN' worker/` — any hit means the Cloudflare Worker binding is already declared. Confirm with `npx wrangler secret list` if available.
+
+If both signals are present, say "token already configured from a prior MUNS command, skipping setup" and move on. Otherwise instruct me to create them:
 
 1. **GitHub Actions secret** `MUNS_ACCESS_TOKEN` — repo Settings → Secrets and variables → Actions → New repository secret. Used by Phase 3.
 2. **Cloudflare Worker secret** `MUNS_ACCESS_TOKEN` — `npx wrangler secret put MUNS_ACCESS_TOKEN` or Cloudflare dashboard → Worker → Settings → Variables and Secrets. Used by Phase 5.
@@ -100,7 +105,7 @@ Do not proceed until the JSON file is on disk and the run was 2xx. If the run re
 
 The browser must NOT hold the token. Route MUNS tool calls through the dashboard's own Cloudflare Worker:
 
-1. **Proxy route.** Add (or extend) `worker/index.ts`. Recommended endpoint:
+1. **Proxy route.** Add (or extend) `worker/index.ts`. **If `worker/index.ts` already exists with a `/api/muns/run` route (from `/munshot_agent`), keep it and add the tools route alongside — share the same `env.MUNS_ACCESS_TOKEN` binding. Do not replace the file or remove existing routes.** Recommended endpoint:
    - `POST /api/muns/tools/<toolname>` — read body, forward to the matching MUNS URL with `Authorization: Bearer ${env.MUNS_ACCESS_TOKEN}`, return the upstream response (preserve status + JSON body).
    - For unknown tool names, return `400`.
    - For everything else, `return env.ASSETS.fetch(request)`.
@@ -117,8 +122,10 @@ The browser must NOT hold the token. Route MUNS tool calls through the dashboard
 ## Phase 6 — Tear down the bootstrap
 
 Once a 2xx JSON sample is captured and the UI is wired:
-- Delete `.github/workflows/munshot-tool-fetch.yml` and the `munshot-outputs/tool-<...>.json` file (or the whole `munshot-outputs/` dir if no other tools left).
-- Tell me: GitHub Actions `MUNS_ACCESS_TOKEN` secret can stay (harmless) or be removed; the Cloudflare `MUNS_ACCESS_TOKEN` secret must remain — runtime depends on it.
+- Delete **only** `.github/workflows/munshot-tool-fetch.yml` and **only** the `munshot-outputs/tool-*.json` files this run created.
+- **Do NOT touch** `.github/workflows/munshot-fetch.yml` or any `munshot-outputs/agent-*.txt` / `munshot-outputs/chat-*.txt` files — those belong to `/munshot_agent` and may still be needed there.
+- Only `rmdir munshot-outputs/` if it is empty after this cleanup.
+- The shared `MUNS_ACCESS_TOKEN` secrets (GitHub + Cloudflare) **must remain** — runtime and any future `/munshot_*` runs depend on them. Do not advise removing them.
 - Do not tear down if any run failed.
 
 ## Hard rules
